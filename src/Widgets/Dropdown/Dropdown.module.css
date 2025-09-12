@@ -1,0 +1,122 @@
+/* Dropdown container */
+.dropdown_wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  position: relative;
+}
+
+/* Label styling */
+.dropdown_label {
+  font-weight: 400;
+  color:#344054;
+  font-size: 12px;
+}
+
+/* Button styling */
+.dropdown_wrapper .dropdown_button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 14px;
+  border-radius: 8px;
+  border: 1px solid #C3C3C3;
+  box-shadow: 0 1px 2px 0 rgba(16, 24, 40, 0.05);
+  background: #FFF;
+  font-size: 13px;
+  font-weight: 400;
+  color: #101828;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Dropdown list styling */
+.dropdown_list {
+  position: absolute;
+  z-index: 2;
+  width: 100%;
+  top: 62px;
+  left: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #C3C3C3;
+  border-radius: 8px;
+  background-color: #FFF;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  list-style: none;
+  padding: 7px 9px;
+  margin-bottom: 0;
+}
+
+.dropdown_search_list{
+  width: 100%;
+}
+
+.dropdown_search_list .dropdown_search_box{
+  background: #E7E7E7;
+  width: 100%;
+  padding: 8px 30px;
+  border-radius: 5px;
+}
+
+.dropdown_search_box::placeholder {
+color:  #101828;
+font-size: 12px;
+font-weight: 400;
+}
+
+.dropdown_search_icon{
+  position: absolute;
+  top:15px;
+  left: 15px;
+}
+
+ .dropdown_option {
+  display: block;
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+}
+
+/* Option styling */
+/*
+
+.dropdown-option:hover,
+.dropdown-option:focus {
+  background-color: #E7E7E7;
+}
+
+.dropdown-option:active {
+  background-color: #007bff;
+  color: white;
+} */
+
+/* No results styling */
+.dropdown_no_results {
+  display: block;
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #666;
+}
+
+.dropdown_result_list{
+  border-bottom:  1px solid #D8D8D8;
+  overflow: auto;
+  width: 95%;
+}
+
+.dropdown_result_list .dropdown_option{
+  color: var(--Gray-900, #101828);
+  font-size: 12px;
+  font-weight: 400;
+  padding: 7px;
+}
+.dropdown_loading {
+  display: block;
+  padding: 8px;
+  color: #666;
+  font-size: 14px;
+  text-align: center;
+}

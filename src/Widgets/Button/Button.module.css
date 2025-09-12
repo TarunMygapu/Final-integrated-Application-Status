@@ -1,0 +1,44 @@
+.button_wrapper {
+  display: block;
+}
+ 
+.button_wrapper .button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  gap: 8px;
+}
+ 
+.button_wrapper .button.primary {
+  background-color: #3425ff;
+  color: white ;
+}
+ 
+.button_wrapper .button.secondary{
+  background-color: white;
+  color: #3425FF;
+  border: 1px solid #3425FF;
+}
+ 
+.button_wrapper button[type="submit"] {
+  padding: 8px 34px;
+}
+ 
+.button_wrapper button[type="button"] {
+  padding: 8px 12px;
+}
+ 
+button:hover {
+  opacity: 0.9;
+}
+ 
+.disabled {
+  color: rgba(52, 37, 255, 0.5) !important;
+  background: #f6f8fa !important;
+  cursor: not-allowed !important;
+}

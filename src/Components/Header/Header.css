@@ -1,0 +1,78 @@
+
+.top_header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background-color: #fff;
+  border-bottom: 1px solid #e2e3e4;
+  height: 54px;
+  z-index: 222;
+  padding:4px 10px;
+  transition: all 0.2s;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.logo-item{
+  width: 20%;
+}
+
+.navsearch_item.search_component {
+  width: 50%;
+}
+
+
+
+.sclogo {
+  width: 160px;
+}
+.logoimg{
+  margin: 0 16px  16px;
+}
+
+
+.searchbar_flexleft {
+  width: 100%;
+}
+
+.searchbar_flexright {
+  width: 100%;
+  text-align: right;
+}
+
+.tophead_searchflex {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-start;
+ border-radius: 8px;
+border: 1px solid #EBECEF;
+background: #FAFAFA;
+  padding: 10px 20px;
+  width: 374px;
+}
+
+.sc_topheader_input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 12px;
+  font-weight: 400;
+  color:rgba(0, 0, 0, 0.25);
+  background: #FAFAFA;
+}
+
+.top_userinfo_flex {
+  padding-left: 0;
+  list-style: none;
+  margin-bottom: 0;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: flex-end;
+  position: relative;
+}
+

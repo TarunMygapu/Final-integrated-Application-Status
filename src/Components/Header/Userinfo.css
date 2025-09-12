@@ -1,0 +1,44 @@
+.user-info {
+   width:50%;
+   flex-direction: row;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.bell-icon {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.profile-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-details {
+  line-height: 1.2;
+}
+
+.username {
+color: var(--Gray-700, #344054);
+
+font-size: 14px;
+font-style: normal;
+font-weight: 600;
+line-height: normal;
+}
+
+.role {
+  font-size: 13px;
+  color: #6c757d;
+}
+
+.dropdown-icon {
+  color: #444;
+  cursor: pointer;
+}

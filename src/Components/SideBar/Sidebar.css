@@ -1,0 +1,83 @@
+/* Sidebar container */
+.sidebar {
+  width: 230px;
+  height: 100%;
+  background: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 14px;
+}
+
+/* Menu reset */
+.menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+}
+
+/* Menu item */
+.menu-item {
+  margin: 2px 0;
+}
+
+/* Menu link */
+.menu-link {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 12px;
+  padding: 10px 16px;
+  color: #333;
+  font-size: 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+    text-decoration: none;
+}
+
+/* Hover effect */
+.menu-link:hover {
+  background: #3425FF;
+}
+
+/* Icon wrapper */
+.icon-wrapper {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+}
+
+/* Icon */
+.icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Title text */
+.title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+color: #595E6C;
+text-overflow: ellipsis;
+
+font-size: 14px;
+font-style: normal;
+font-weight: 400;
+line-height: 150%; /* 21px */
+}
+
+
+.menu-link:hover .title {
+  color: #fff;
+}
+
+.menu-link:hover .icon {
+  filter: brightness(0) invert(1); /* makes SVG image white */
+}
