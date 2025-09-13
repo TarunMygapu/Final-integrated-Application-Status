@@ -539,6 +539,56 @@ export const fetchAllStudentClasses = async () => {
   }
 };
 
+// New cascading dropdown APIs
+
+export const fetchBatchTypeByCampusAndClass = async (campusId, classId) => {
+  try {
+    console.log("Fetching batch type from:", `${API_BASE_URL}/study-typebycmpsId_and_classId?cmpsId=${campusId}&classId=${classId}`);
+    const response = await axios.get(`${API_BASE_URL}/study-typebycmpsId_and_classId?cmpsId=${campusId}&classId=${classId}`);
+    console.log("Batch type API response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching batch type:", error);
+    handleApiError(error);
+  }
+};
+
+export const fetchOrientationNameByCampusClassAndStudyType = async (campusId, classId, studyTypeId) => {
+  try {
+    console.log("Fetching orientation name from:", `${API_BASE_URL}/orientationbycmpsId_and_classId_and_studyType?cmpsId=${campusId}&classId=${classId}&studyTypeId=${studyTypeId}`);
+    const response = await axios.get(`${API_BASE_URL}/orientationbycmpsId_and_classId_and_studyType?cmpsId=${campusId}&classId=${classId}&studyTypeId=${studyTypeId}`);
+    console.log("Orientation name API response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching orientation name:", error);
+    handleApiError(error);
+  }
+};
+
+export const fetchOrientationBatchByAllFields = async (campusId, classId, studyTypeId, orientationId) => {
+  try {
+    console.log("Fetching orientation batch from:", `${API_BASE_URL}/orientation-batchbycmpsId_and_classId_and_studyType_and_orientation?cmpsId=${campusId}&classId=${classId}&studyTypeId=${studyTypeId}&orientationId=${orientationId}`);
+    const response = await axios.get(`${API_BASE_URL}/orientation-batchbycmpsId_and_classId_and_studyType_and_orientation?cmpsId=${campusId}&classId=${classId}&studyTypeId=${studyTypeId}&orientationId=${orientationId}`);
+    console.log("Orientation batch API response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching orientation batch:", error);
+    handleApiError(error);
+  }
+};
+
+export const fetchOrientationStartDateAndFee = async (campusId, classId, studyTypeId, orientationId, orientationBatchId) => {
+  try {
+    console.log("Fetching orientation details from:", `${API_BASE_URL}/get_orientation_startDate_and_fee?cmpsId=${campusId}&classId=${classId}&studyTypeId=${studyTypeId}&orientationId=${orientationId}&orientationBatchId=${orientationBatchId}`);
+    const response = await axios.get(`${API_BASE_URL}/get_orientation_startDate_and_fee?cmpsId=${campusId}&classId=${classId}&studyTypeId=${studyTypeId}&orientationId=${orientationId}&orientationBatchId=${orientationBatchId}`);
+    console.log("Orientation details API response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching orientation details:", error);
+    handleApiError(error);
+  }
+};
+
 // Default export with all API functions
 const apiService = {
   fetchDistributionStates,
@@ -610,6 +660,11 @@ const apiService = {
   fetchCastes,
   fetchBloodGroups,
   fetchAllStudentClasses,
+  // New cascading dropdown APIs
+  fetchBatchTypeByCampusAndClass,
+  fetchOrientationNameByCampusClassAndStudyType,
+  fetchOrientationBatchByAllFields,
+  fetchOrientationStartDateAndFee,
 };
 
 export default apiService;

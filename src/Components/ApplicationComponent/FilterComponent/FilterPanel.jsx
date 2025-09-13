@@ -5,20 +5,12 @@ import arrowDownIcon from "../../../Asserts/ApplicationStatus/arrow-down.svg";
 const FilterPanel = ({
   activeTab,
   setActiveTab,
-  selectedZone,
-  setSelectedZone,
-  selectedDgm,
-  setSelectedDgm,
   selectedCampus,
   setSelectedCampus,
   studentCategory,
   setStudentCategory,
 }) => {
-  const [isZoneOpen, setIsZoneOpen] = useState(false);
-  const [isDgmOpen, setIsDgmOpen] = useState(false);
   const [isCampusOpen, setIsCampusOpen] = useState(false);
-  const [zoneSearch, setZoneSearch] = useState("");
-  const [dgmSearch, setDgmSearch] = useState("");
   const [campusSearch, setCampusSearch] = useState("");
  
   const panelRef = useRef(null);
@@ -26,8 +18,6 @@ const FilterPanel = ({
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (panelRef.current && !panelRef.current.contains(event.target)) {
-        setIsZoneOpen(false);
-        setIsDgmOpen(false);
         setIsCampusOpen(false);
       }
     };
@@ -63,8 +53,6 @@ const FilterPanel = ({
   };
  
   const handleResetFilters = () => {
-    setSelectedZone("All Zones");
-    setSelectedDgm("All DGMs");
     setSelectedCampus("All Campuses");
     setStudentCategory({
       all: true,
@@ -74,20 +62,8 @@ const FilterPanel = ({
       withPro: false,
       damaged: false,
     });
-    setActiveTab("zone");
+    setActiveTab("campus");
   };
- 
-  const filteredZones = [
-    "All Zones",
-    "North Zone",
-    "South Zone",
-    "East Zone",
-    "West Zone",
-  ].filter((zone) => zone.toLowerCase().includes(zoneSearch.toLowerCase()));
- 
-  const filteredDgms = ["All DGMs", "DGM 1", "DGM 2", "DGM 3", "DGM 4"].filter(
-    (dgm) => dgm.toLowerCase().includes(dgmSearch.toLowerCase())
-  );
  
   const filteredCampuses = [
     "All Campuses",

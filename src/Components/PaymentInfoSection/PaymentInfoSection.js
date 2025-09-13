@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useFormikContext } from "formik";
+import { useNavigate } from "react-router-dom";
 import Inputbox from "../../Widgets/Inputbox/Input_box";
 import Dropdown from "../../Widgets/Dropdown/Dropdown";
 import { Button as MUIButton } from "@mui/material";
@@ -303,8 +304,10 @@ const PaymentInfoSection = ({
   finishDisabled,
 }) => {
   const { setErrors, setTouched } = useFormikContext();
+  const navigate = useNavigate();
   const [selectedPaymentMode, setSelectedPaymentMode] = useState("Cash");
   const [selectedAppFeePayMode, setSelectedAppFeePayMode] = useState("Cash");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // State for dropdown options
   const [dropdownOptions, setDropdownOptions] = useState({
@@ -492,12 +495,14 @@ const PaymentInfoSection = ({
         return [
           { label: "Application Fee Pay Date", name: "paymentDate", placeholder: "Select Payment Date", type: "date", required: true },
           { label: "Application Fee Amount", name: "amount", placeholder: "Enter Amount (numbers only)", required: true },
+          { label: "Application Sale Date", name: "mainDdSaleDate", placeholder: "Select Sale Date", type: "date", required: true },
           { label: "Receipt Number", name: "receiptNumber", placeholder: "Enter Receipt Number", required: true },
         ];
       case "DD":
         return [
           { label: "Application Fee Pay Date", name: "mainDdPayDate", placeholder: "Select Pay Date", type: "date", required: true },
           { label: "Application Fee Amount", name: "mainDdAmount", placeholder: "Enter Amount (numbers only)", required: true },
+          {label:"Applicattion Sale Date", name: "mainDdSaleDate", placeholder: "Select Sale Date", type: "date", required: true },
           { label: "Receipt Number", name: "mainDdReceiptNumber", placeholder: "Enter Receipt Number", required: true },
           { label: "Organisation Name", name: "mainDdOrganisationName", type: "select", options: dropdownOptions.organizations.map(opt => opt.label), required: true },
           { label: "DD Number", name: "mainDdNumber", placeholder: "Enter DD Number", required: true },
@@ -511,6 +516,7 @@ const PaymentInfoSection = ({
         return [
           { label: "Application Fee Pay Date", name: "mainChequePayDate", placeholder: "Select Pay Date", type: "date", required: true },
           { label: "Application Fee Amount", name: "mainChequeAmount", placeholder: "Enter Amount (numbers only)", required: true },
+          { label: "Application Sale Date", name: "mainChequeSaleDate", placeholder: "Select Sale Date", type: "date", required: true },
           { label: "Receipt Number", name: "mainChequeReceiptNumber", placeholder: "Enter Receipt Number", required: true },
           { label: "Organisation Name", name: "mainChequeOrganisationName", type: "select", options: dropdownOptions.organizations.map(opt => opt.label), required: true },
           { label: "Cheque Number", name: "mainChequeNumber", placeholder: "Enter Cheque Number", required: true },
@@ -684,6 +690,45 @@ const PaymentInfoSection = ({
     }
   };
 
+  // Handle proceed to confirmation
+  const handleProceedToConfirmation = async () => {
+    try {
+      setIsSubmitting(true);
+      console.log("🚀 Proceeding to confirmation with form data:", values);
+      
+      // Validate the form before submitting
+      const validationErrors = await validateForm();
+      if (validationErrors && Object.keys(validationErrors).length > 0) {
+        console.error("❌ Form validation failed:", validationErrors);
+        setErrors(validationErrors);
+        setTouched(Object.keys(validationErrors).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Submit the form data to the database
+      console.log("📤 Submitting application sale data to database...");
+      const response = await apiService.submitAdmissionForm(values);
+      console.log("✅ Application sale data submitted successfully:", response);
+      
+      // Navigate to confirmation page with the submitted data
+      navigate('/confirmation', { 
+        state: { 
+          applicationData: values,
+          submissionResponse: response,
+          fromPayment: true 
+        } 
+      });
+      
+    } catch (error) {
+      console.error("❌ Error submitting application sale data:", error);
+      // You might want to show an error message to the user here
+      alert("Failed to submit application data. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className={styles.Payment_Info_Section_payment_info_section}>
       <div className={styles.Payment_Info_Section_payment_section_header}>
@@ -757,11 +802,30 @@ const PaymentInfoSection = ({
           disabled={finishDisabled}
         />
       </div>
-      <a href="#" className={styles.paymentLinkButton}>
+      <a 
+        href="#"
+        className={styles.paymentLinkButton}
+        onClick={(e) => {
+          e.preventDefault(); // Prevent default link navigation
+          if (!isSubmitting) {
+            handleProceedToConfirmation();
+          }
+        }}
+        style={{ 
+          background: 'none', 
+          border: 'none', 
+          cursor: isSubmitting ? 'not-allowed' : 'pointer',
+          opacity: isSubmitting ? 0.6 : 1,
+          textDecoration: 'none',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}
+      >
         <figure style={{ margin: 0, display: "flex", alignItems: "center" }}>
           <img src={SkipIcon} alt="Skip" style={{ width: 24, height: 24 }} />
         </figure>
-        Proceed to Confirmation
+        {isSubmitting ? "Submitting..." : "Proceed to Confirmation"}
       </a>
     </div>
   );

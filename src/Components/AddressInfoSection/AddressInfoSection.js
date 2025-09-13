@@ -232,9 +232,9 @@ const AddressInfoSection = ({
     { label: "Landmark", name: "landmark", placeholder: "Enter Landmark" },
     { label: "Area", name: "area", placeholder: "Enter Area", required: true },
     { label: "State", name: "stateId", type: "select", options: dropdownOptions.states, required: true },
-    { label: "City", name: "addressCity", type: "select", options: dropdownOptions.cities, required: true },
     { label: "District", name: "district", type: "select", options: dropdownOptions.districts, required: true },
-    { label: "Mandal", name: "mandal", type: "select", options: dropdownOptions.mandals, required: true },
+    { label: "City", name: "addressCity", type: "select", options: dropdownOptions.cities, required: true },
+   { label: "Mandal", name: "mandal", type: "select", options: dropdownOptions.mandals, required: true },
     { label: "Pincode", name: "pincode", placeholder: "Enter Pincode", required: true },
     { label: "G-pin (latitude & longitude)", name: "gpin", placeholder: "Search address" },
   ];

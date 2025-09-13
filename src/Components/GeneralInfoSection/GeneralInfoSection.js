@@ -128,6 +128,30 @@ const GeneralInfoSection = ({
 }) => {
   const { setErrors, setTouched: setFormikTouched } = useFormikContext();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Helper function to format date values for display
+  const formatDateForDisplay = (dateValue, fieldName) => {
+    if (!dateValue) return "";
+    
+    console.log(`📍 formatDateForDisplay called with:`, { dateValue, fieldName, type: typeof dateValue });
+    
+    // If it's already in yyyy-mm-dd format, return as is
+    if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+      console.log(`📍 Date already in yyyy-mm-dd format:`, dateValue);
+      return dateValue;
+    }
+    
+    // If it's a date object or ISO string, convert to yyyy-mm-dd
+    const date = new Date(dateValue);
+    if (!isNaN(date.getTime())) {
+      const formatted = date.toISOString().split('T')[0];
+      console.log(`📍 Converted date to yyyy-mm-dd:`, formatted);
+      return formatted;
+    }
+    
+    console.log(`📍 Could not format date, returning original:`, dateValue);
+    return dateValue;
+  };
   const [dropdownOptions, setDropdownOptions] = useState({
     appTypes: [],
     studentTypes: [],
@@ -152,6 +176,11 @@ const GeneralInfoSection = ({
     allStudentClasses: [],
     orientations: [],
     orientationBatches: [],
+    // New cascading dropdown options
+    joiningClasses: [], // Classes based on campus
+    batchTypes: [], // Batch types based on campus and class
+    orientationNames: [], // Orientation names based on campus, class, and batch type
+    orientationBatchesCascading: [], // Orientation batches based on all previous fields
   });
   const [loadingStates, setLoadingStates] = useState({
     appTypes: true,
@@ -175,6 +204,11 @@ const GeneralInfoSection = ({
     allStudentClasses: true,
     orientations: false,
     orientationBatches: false,
+    // New cascading dropdown loading states
+    joiningClasses: false,
+    batchTypes: false,
+    orientationNames: false,
+    orientationBatchesCascading: false,
   });
   const [persistentErrors, setPersistentErrors] = useState({});
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
@@ -323,9 +357,11 @@ const GeneralInfoSection = ({
     { label: "Date of Birth", name: "dob", type: "date", required: true },
     { label: "Gender", name: "gender", type: "radio", options: dropdownOptions.genders, required: true },
     { label: "Joined Campus/Branch", name: "joinedCampus", type: "select", options: dropdownOptions.campuses, required: true },
-    { label: "Joining Class", name: "joiningClassName", type: "select", options: dropdownOptions.classes, required: true },
-    { label: "Orientation Name", name: "orientationName", type: "select", options: dropdownOptions.orientations, required: true },
-    { label: "Orientation Batch", name: "orientationBatch", type: "select", options: dropdownOptions.orientationBatches, required: true },
+    { label: "Joining Class", name: "joiningClassName", type: "select", options: dropdownOptions.joiningClasses, required: true },
+
+    {label:"Batch Type", name: "batchType", type: "select", options: dropdownOptions.batchTypes, required: true },
+    { label: "Orientation Name", name: "orientationName", type: "select", options: dropdownOptions.orientationNames, required: true },
+    { label: "Orientation Batch", name: "orientationBatch", type: "select", options: dropdownOptions.orientationBatchesCascading, required: true },
     { label: "Orientation Dates", name: "orientationDates", type: "date", required: true, readOnly: true, placeholder: "Auto-populated from batch selection" },
     { label: "Orientation Fee", name: "OrientationFee", placeholder: "Auto-populated from batch selection", readOnly: true },
     { label: "School State", name: "schoolState", type: "select", options: dropdownOptions.schoolStates, required: true },
@@ -379,6 +415,19 @@ const GeneralInfoSection = ({
     } else if (name.includes("gender") && !name.includes("siblingInformation")) {
       const selectedGender = dropdownOptions.genders.find((opt) => opt.label === value);
       finalValue = selectedGender ? selectedGender.id : "";
+    } else if (name === "dob" || name === "orientationDates") {
+      // Format date fields to yyyy-mm-dd format for HTML date input
+      if (value) {
+        const date = new Date(value);
+        if (!isNaN(date.getTime())) {
+          finalValue = date.toISOString().split('T')[0]; // yyyy-mm-dd format
+          console.log(`📍 Date formatted for ${name}:`, finalValue);
+        } else {
+          finalValue = value; // Keep original value if not a valid date
+        }
+      } else {
+        finalValue = value;
+      }
     } else if (["htNo", "appFee", "fee", "additionalCourseFee", "scoreAppNo", "marks", "aadhar", "fatherPhoneNumber", "motherPhoneNumber"].includes(name)) {
       finalValue = value.replace(/\D/g, "");
       if (name === "aadhar" && finalValue.length > 12) {
@@ -477,17 +526,18 @@ const GeneralInfoSection = ({
       }
     }
     
-    // Handle campus change for classes
+    // Handle campus change for joining classes (Step 1: Campus → Joining Class)
     if (name === "joinedCampus") {
       const campusId = finalValue;
       console.log("🎯 Campus changed:", { name, campusId, finalValue });
-      console.log("🎯 Available campuses:", dropdownOptions.campuses);
-      console.log("🎯 Selected campus option:", dropdownOptions.campuses.find(opt => opt.id === campusId));
+      
       if (campusId) {
-        console.log("🔄 Fetching classes for campus:", campusId);
-        console.log("🔄 API URL will be:", `http://localhost:8080/api/student-admissions-sale/classes/by-campus/${campusId}`);
+        // Set loading state
+        setLoadingStates(prev => ({ ...prev, joiningClasses: true }));
+        
+        console.log("🔄 Fetching joining classes for campus:", campusId);
         apiService.fetchClassesByCampus(campusId).then((classes) => {
-          console.log("📍 Raw classes response:", classes);
+          console.log("📍 Raw joining classes response:", classes);
           
           // Handle different data structures
           let processedClasses = classes;
@@ -504,48 +554,125 @@ const GeneralInfoSection = ({
             label: item?.name || item?.className || item?.label || String(item)
           }));
           
-          console.log("📍 Mapped classes:", mappedClasses);
-          setDropdownOptions((prev) => {
-            const newOptions = {
-              ...prev,
-              classes: mappedClasses,
-            };
-          console.log("📍 Updated dropdown options classes:", newOptions.classes);
-          return newOptions;
-          });
+          console.log("📍 Mapped joining classes:", mappedClasses);
+          setDropdownOptions((prev) => ({
+            ...prev,
+            joiningClasses: mappedClasses,
+            // Clear dependent dropdowns
+            batchTypes: [],
+            orientationNames: [],
+            orientationBatchesCascading: []
+          }));
+          
+          // Clear dependent fields
           setFieldValue("joiningClassName", "");
-          setFieldTouched("joiningClassName", true);
+          setFieldValue("batchType", "");
+          setFieldValue("orientationName", "");
+          setFieldValue("orientationBatch", "");
+          setFieldValue("orientationDates", "");
+          setFieldValue("OrientationFee", "");
+          
+          setLoadingStates(prev => ({ ...prev, joiningClasses: false }));
         }).catch((err) => {
-          console.error("❌ Failed to fetch classes:", err);
-          console.error("❌ Error details:", {
-            message: err.message,
-            status: err.response?.status,
-            data: err.response?.data,
-            url: err.config?.url
-          });
-          setDropdownOptions((prev) => ({ ...prev, classes: [] }));
-          setFieldValue("joiningClassName", "");
-          setFieldTouched("joiningClassName", true);
+          console.error("❌ Failed to fetch joining classes:", err);
+          setLoadingStates(prev => ({ ...prev, joiningClasses: false }));
         });
       } else {
-        console.log("🧹 Clearing classes as no campus selected");
-        setDropdownOptions((prev) => ({ ...prev, classes: [] }));
+        console.log("🧹 Clearing joining classes as no campus selected");
+        setDropdownOptions((prev) => ({ 
+          ...prev, 
+          joiningClasses: [],
+          batchTypes: [],
+          orientationNames: [],
+          orientationBatchesCascading: []
+        }));
         setFieldValue("joiningClassName", "");
-        setFieldTouched("joiningClassName", true);
+        setFieldValue("batchType", "");
+        setFieldValue("orientationName", "");
+        setFieldValue("orientationBatch", "");
+        setFieldValue("orientationDates", "");
+        setFieldValue("OrientationFee", "");
       }
     }
     
-    // Handle class change for orientations
+    // Handle joining class change for batch types (Step 2: Campus + Class → Batch Type)
     if (name === "joiningClassName") {
       const classId = finalValue;
-      console.log("🎯 Class changed:", { name, classId, finalValue });
-      if (classId) {
-        console.log("🔄 Fetching orientations for class:", classId);
-        setLoadingStates(prev => ({ ...prev, orientations: true }));
-        apiService.fetchOrientationsByClass(classId).then((orientations) => {
-          console.log("📍 Raw orientations response:", orientations);
+      const campusId = values.joinedCampus;
+      console.log("🎯 Joining class changed:", { name, classId, campusId });
+      
+      if (campusId && classId) {
+        setLoadingStates(prev => ({ ...prev, batchTypes: true }));
+        
+        console.log("🔄 Fetching batch types for campus and class:", { campusId, classId });
+        apiService.fetchBatchTypeByCampusAndClass(campusId, classId).then((batchTypes) => {
+          console.log("📍 Raw batch types response:", batchTypes);
           
-          // Handle different data structures
+          let processedBatchTypes = batchTypes;
+          if (!Array.isArray(batchTypes)) {
+            if (batchTypes && typeof batchTypes === 'object') {
+              processedBatchTypes = [batchTypes];
+            } else {
+              processedBatchTypes = [];
+            }
+          }
+          
+          const mappedBatchTypes = processedBatchTypes.map((item) => ({
+            id: (item?.id || item?.studyTypeId)?.toString() || "",
+            label: item?.name || item?.studyTypeName || item?.label || String(item)
+          }));
+          
+          console.log("📍 Mapped batch types:", mappedBatchTypes);
+          setDropdownOptions((prev) => ({
+            ...prev,
+            batchTypes: mappedBatchTypes,
+            // Clear dependent dropdowns
+            orientationNames: [],
+            orientationBatchesCascading: []
+          }));
+          
+          // Clear dependent fields
+          setFieldValue("batchType", "");
+          setFieldValue("orientationName", "");
+          setFieldValue("orientationBatch", "");
+          setFieldValue("orientationDates", "");
+          setFieldValue("OrientationFee", "");
+          
+          setLoadingStates(prev => ({ ...prev, batchTypes: false }));
+        }).catch((error) => {
+          console.error("❌ Error fetching batch types:", error);
+          setLoadingStates(prev => ({ ...prev, batchTypes: false }));
+        });
+      } else {
+        console.log("🧹 Clearing batch types as campus or class not selected");
+        setDropdownOptions((prev) => ({ 
+          ...prev, 
+          batchTypes: [],
+          orientationNames: [],
+          orientationBatchesCascading: []
+        }));
+        setFieldValue("batchType", "");
+        setFieldValue("orientationName", "");
+        setFieldValue("orientationBatch", "");
+        setFieldValue("orientationDates", "");
+        setFieldValue("OrientationFee", "");
+      }
+    }
+    
+    // Handle batch type change for orientation names (Step 3: Campus + Class + Batch Type → Orientation Name)
+    if (name === "batchType") {
+      const studyTypeId = finalValue;
+      const campusId = values.joinedCampus;
+      const classId = values.joiningClassName;
+      console.log("🎯 Batch type changed:", { name, studyTypeId, campusId, classId });
+      
+      if (campusId && classId && studyTypeId) {
+        setLoadingStates(prev => ({ ...prev, orientationNames: true }));
+        
+        console.log("🔄 Fetching orientation names for campus, class, and batch type:", { campusId, classId, studyTypeId });
+        apiService.fetchOrientationNameByCampusClassAndStudyType(campusId, classId, studyTypeId).then((orientations) => {
+          console.log("📍 Raw orientation names response:", orientations);
+          
           let processedOrientations = orientations;
           if (!Array.isArray(orientations)) {
             if (orientations && typeof orientations === 'object') {
@@ -560,35 +687,153 @@ const GeneralInfoSection = ({
             label: item?.name || item?.orientationName || item?.label || String(item)
           }));
           
-          console.log("📍 Mapped orientations:", mappedOrientations);
-          setDropdownOptions((prev) => {
-            const newOptions = {
-              ...prev,
-              orientations: mappedOrientations,
-            };
-            console.log("📍 Updated dropdown options orientations:", newOptions.orientations);
-            return newOptions;
-          });
-          setLoadingStates(prev => ({ ...prev, orientations: false }));
+          console.log("📍 Mapped orientation names:", mappedOrientations);
+          setDropdownOptions((prev) => ({
+            ...prev,
+            orientationNames: mappedOrientations,
+            // Clear dependent dropdowns
+            orientationBatchesCascading: []
+          }));
+          
+          // Clear dependent fields
           setFieldValue("orientationName", "");
-          setFieldTouched("orientationName", true);
-        }).catch((err) => {
-          console.error("❌ Failed to fetch orientations:", err);
-          setDropdownOptions((prev) => ({ ...prev, orientations: [] }));
-          setLoadingStates(prev => ({ ...prev, orientations: false }));
-          setFieldValue("orientationName", "");
-          setFieldTouched("orientationName", true);
+          setFieldValue("orientationBatch", "");
+          setFieldValue("orientationDates", "");
+          setFieldValue("OrientationFee", "");
+          
+          setLoadingStates(prev => ({ ...prev, orientationNames: false }));
+        }).catch((error) => {
+          console.error("❌ Error fetching orientation names:", error);
+          setLoadingStates(prev => ({ ...prev, orientationNames: false }));
         });
       } else {
-        console.log("🧹 Clearing orientations as no class selected");
-        setDropdownOptions((prev) => ({ ...prev, orientations: [] }));
+        console.log("🧹 Clearing orientation names as required fields not selected");
+        setDropdownOptions((prev) => ({ 
+          ...prev, 
+          orientationNames: [],
+          orientationBatchesCascading: []
+        }));
         setFieldValue("orientationName", "");
-        setFieldTouched("orientationName", true);
+        setFieldValue("orientationBatch", "");
+        setFieldValue("orientationDates", "");
+        setFieldValue("OrientationFee", "");
       }
     }
     
-    // Handle orientation change for batches
+    // Handle orientation name change for orientation batches (Step 4: All fields → Orientation Batch)
     if (name === "orientationName") {
+      const orientationId = finalValue;
+      const campusId = values.joinedCampus;
+      const classId = values.joiningClassName;
+      const studyTypeId = values.batchType;
+      console.log("🎯 Orientation name changed:", { name, orientationId, campusId, classId, studyTypeId });
+      
+      if (campusId && classId && studyTypeId && orientationId) {
+        setLoadingStates(prev => ({ ...prev, orientationBatchesCascading: true }));
+        
+        console.log("🔄 Fetching orientation batches for all fields:", { campusId, classId, studyTypeId, orientationId });
+        apiService.fetchOrientationBatchByAllFields(campusId, classId, studyTypeId, orientationId).then((batches) => {
+          console.log("📍 Raw orientation batches response:", batches);
+          
+          let processedBatches = batches;
+          if (!Array.isArray(batches)) {
+            if (batches && typeof batches === 'object') {
+              processedBatches = [batches];
+            } else {
+              processedBatches = [];
+            }
+          }
+          
+          const mappedBatches = processedBatches.map((item) => ({
+            id: (item?.id || item?.orientationBatchId)?.toString() || "",
+            label: item?.name || item?.batchName || item?.label || String(item)
+          }));
+          
+          console.log("📍 Mapped orientation batches:", mappedBatches);
+          setDropdownOptions((prev) => ({
+            ...prev,
+            orientationBatchesCascading: mappedBatches
+          }));
+          
+          // Clear dependent fields
+          setFieldValue("orientationBatch", "");
+          setFieldValue("orientationDates", "");
+          setFieldValue("OrientationFee", "");
+          
+          setLoadingStates(prev => ({ ...prev, orientationBatchesCascading: false }));
+        }).catch((error) => {
+          console.error("❌ Error fetching orientation batches:", error);
+          setLoadingStates(prev => ({ ...prev, orientationBatchesCascading: false }));
+        });
+      } else {
+        console.log("🧹 Clearing orientation batches as required fields not selected");
+        setDropdownOptions((prev) => ({ 
+          ...prev, 
+          orientationBatchesCascading: []
+        }));
+        setFieldValue("orientationBatch", "");
+        setFieldValue("orientationDates", "");
+        setFieldValue("OrientationFee", "");
+      }
+    }
+    
+    // Handle orientation batch change for auto-population (Step 5: All fields → Auto-populate)
+    if (name === "orientationBatch") {
+      const orientationBatchId = finalValue;
+      const campusId = values.joinedCampus;
+      const classId = values.joiningClassName;
+      const studyTypeId = values.batchType;
+      const orientationId = values.orientationName;
+      console.log("🎯 Orientation batch changed:", { name, orientationBatchId, campusId, classId, studyTypeId, orientationId });
+      
+      if (campusId && classId && studyTypeId && orientationId && orientationBatchId) {
+        console.log("🔄 Fetching orientation details for auto-population:", { campusId, classId, studyTypeId, orientationId, orientationBatchId });
+        apiService.fetchOrientationStartDateAndFee(campusId, classId, studyTypeId, orientationId, orientationBatchId).then((details) => {
+          console.log("📍 Raw orientation details response:", details);
+          console.log("📍 Response type:", typeof details);
+          console.log("📍 Response keys:", details ? Object.keys(details) : "No keys");
+          
+          // Auto-populate orientation start date and fee
+          if (details) {
+            console.log("📍 Checking for startDate in details:", details.startDate);
+            console.log("📍 Checking for orientationStartDate in details:", details.orientationStartDate);
+            console.log("📍 Checking for date in details:", details.date);
+            
+            // Try multiple possible field names for the date
+            let dateValue = details.startDate || details.orientationStartDate || details.date || details.orientation_date || details.batchStartDate;
+            console.log("📍 Extracted date value:", dateValue);
+            
+            if (dateValue) {
+              // Format the date to yyyy-mm-dd for HTML date input
+              const formattedDate = formatDateForDisplay(dateValue, "orientationDates");
+              console.log("📍 Formatted date:", formattedDate);
+              setFieldValue("orientationDates", formattedDate);
+              console.log("✅ Auto-populated orientation start date:", formattedDate);
+            } else {
+              console.log("❌ No date value found in response");
+            }
+            
+            // Try multiple possible field names for the fee
+            let feeValue = details.fee || details.orientationFee || details.orientation_fee || details.batchFee;
+            console.log("📍 Extracted fee value:", feeValue);
+            
+            if (feeValue) {
+              setFieldValue("OrientationFee", feeValue);
+              console.log("✅ Auto-populated orientation fee:", feeValue);
+            } else {
+              console.log("❌ No fee value found in response");
+            }
+          } else {
+            console.log("❌ No details received from API");
+          }
+        }).catch((error) => {
+          console.error("❌ Error fetching orientation details:", error);
+        });
+      }
+    }
+    
+    // Handle other field changes (existing logic)
+    if (name === "orientationName" && false) { // Disabled to avoid duplicate
       const orientationId = finalValue;
       const campusId = values.joinedCampus;
       const classId = values.joiningClassName;
@@ -855,6 +1100,7 @@ const GeneralInfoSection = ({
       "gender",
       "joinedCampus",
       "joiningClassName",
+      "batchType",
       "orientationName",
       "orientationBatch",
       "orientationDates",
@@ -899,9 +1145,10 @@ const GeneralInfoSection = ({
                   'studentType': 'studentTypes',
                   'gender': 'genders',
                   'joinedCampus': 'campuses',
-                  'joiningClassName': 'classes',
-                  'orientationName': 'orientations',
-                  'orientationBatch': 'orientationBatches',
+                  'joiningClassName': 'joiningClasses',
+                  'batchType': 'batchTypes',
+                  'orientationName': 'orientationNames',
+                  'orientationBatch': 'orientationBatchesCascading',
                   'schoolState': 'schoolStates',
                   'schoolDistrict': 'schoolDistricts',
                   'schoolType': 'schoolTypes',
@@ -1082,7 +1329,7 @@ const GeneralInfoSection = ({
                     id={field.name}
                     name={field.name}
                     placeholder={field.placeholder}
-                    value={field.type === "file" ? undefined : values[field.name] || ""}
+                    value={field.type === "file" ? undefined : (field.type === "date" ? formatDateForDisplay(values[field.name], field.name) : values[field.name] || "")}
                     onChange={field.readOnly ? undefined : handleSectionChange}
                     type={field.type || "text"}
                     error={shouldShowError(field.name)}

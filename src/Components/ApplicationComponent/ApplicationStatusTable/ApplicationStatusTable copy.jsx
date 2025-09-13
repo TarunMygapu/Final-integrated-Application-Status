@@ -5,8 +5,6 @@ import styles from "./ApplicationStatusTable.module.css";
 
 const ApplicationStatusTable = ({
   search = "",
-  selectedZone = "All Zones",
-  selectedDgm = "All DGMs",
   selectedCampus = "All Campuses",
   studentCategory = { all: true },
   onDataFilter,
@@ -66,12 +64,6 @@ const ApplicationStatusTable = ({
     );
   }
 
-  if (selectedZone !== "All Zones") {
-    filteredData = filteredData.filter((item) => item.zone === selectedZone);
-  }
-  if (selectedDgm !== "All DGMs") {
-    filteredData = filteredData.filter((item) => item.dgm === selectedDgm);
-  }
   if (selectedCampus !== "All Campuses") {
     filteredData = filteredData.filter((item) => item.campus === selectedCampus);
   }
@@ -96,7 +88,7 @@ const ApplicationStatusTable = ({
       onDataFilter(filteredData);
       prevFilteredData.current = filteredData;
     }
-  }, [search, selectedZone, selectedDgm, selectedCampus, studentCategory, onDataFilter]);
+  }, [search, selectedCampus, studentCategory, onDataFilter]);
 
   useEffect(() => {
     if (pageIndex * pageSize >= filteredData.length && filteredData.length > 0) {

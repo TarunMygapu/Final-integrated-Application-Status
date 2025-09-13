@@ -23,9 +23,7 @@ const ApplicationStatus = () => {
   const [pageIndex, setPageIndex] = useState(0);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("zone");
-  const [selectedZone, setSelectedZone] = useState("All Zones");
-  const [selectedDgm, setSelectedDgm] = useState("All DGMs");
-  const [selectedCampus, setSelectedCampus] = useState(38);
+  const [selectedCampus, setSelectedCampus] = useState(1);
   const [studentCategory, setStudentCategory] = useState({
     all: true,
     sold: false,
@@ -36,8 +34,6 @@ const ApplicationStatus = () => {
   });
 
   // Baseline refs to detect if user has applied any filter changes
-  const initialZoneRef = useRef("All Zones");
-  const initialDgmRef = useRef("All DGMs");
   const initialCampusRef = useRef(38);
   const initialStudentCategoryRef = useRef({
     all: true,
@@ -175,18 +171,6 @@ const ApplicationStatus = () => {
       );
     }
  
-    if (selectedZone !== "All Zones") {
-      filtered = filtered.filter(
-        (item) => (item.zonal_name ?? item.zone ?? item.zoneName ?? "") === selectedZone
-      );
-    }
- 
-    if (selectedDgm !== "All DGMs") {
-      filtered = filtered.filter(
-        (item) => (item.dgm_name ?? item.dgm ?? item.dgmName ?? "") === selectedDgm
-      );
-    }
- 
     if (selectedCampus !== "All Campuses") {
       filtered = filtered.filter(
         (item) => (item.campusId ?? item.cmps_id ?? item.campus_id ?? "") === selectedCampus
@@ -216,7 +200,7 @@ const ApplicationStatus = () => {
  
     console.log("Computed filteredData:", filtered);
     return filtered;
-  }, [data, search, selectedZone, selectedDgm, selectedCampus, studentCategory]);
+  }, [data, search, selectedCampus, studentCategory]);
  
   useEffect(() => {
     setFilteredData(filteredDataMemo);
@@ -235,13 +219,11 @@ const ApplicationStatus = () => {
       a.damaged !== b.damaged;
 
     const applied =
-      selectedZone !== initialZoneRef.current ||
-      selectedDgm !== initialDgmRef.current ||
       selectedCampus !== initialCampusRef.current ||
       isCategoryChanged(studentCategory, initialStudentCategoryRef.current);
 
     setIsFilterApplied(applied);
-  }, [selectedZone, selectedDgm, selectedCampus, studentCategory]);
+  }, [selectedCampus, studentCategory]);
  
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -383,10 +365,6 @@ const ApplicationStatus = () => {
                 <FilterPanel
                   activeTab={activeTab}
                   setActiveTab={setActiveTab}
-                  selectedZone={selectedZone}
-                  setSelectedZone={setSelectedZone}
-                  selectedDgm={selectedDgm}
-                  setSelectedDgm={setSelectedDgm}
                   selectedCampus={selectedCampus}
                   setSelectedCampus={setSelectedCampus}
                   studentCategory={studentCategory}

@@ -528,11 +528,13 @@ const Damaged = () => {
     [
       { name: "applicationNo", label: "Application No", type: "input", required: true },
       { name: "zoneName", label: "Zone Name", type: "select", options: dropdownOptions.zoneName.map((opt) => opt.label), required: true },
-      { name: "campusName", label: "Campus Name", type: "select", options: dropdownOptions.campusName.map((opt) => opt.label), required: true },
+      { name: "dgmName", label: "DGM Name", type: "select", options: dropdownOptions.dgmName.map((opt) => opt.label), required: true },
+    
     ],
     [
+      { name: "campusName", label: "Campus Name", type: "select", options: dropdownOptions.campusName.map((opt) => opt.label), required: true },
       { name: "proName", label: "PRO Name", type: "select", options: dropdownOptions.proName.map((opt) => opt.label), required: true },
-      { name: "dgmName", label: "DGM Name", type: "select", options: dropdownOptions.dgmName.map((opt) => opt.label), required: true },
+     
       { name: "status", label: "Select Status of Application", type: "select", options: dropdownOptions.status.map((opt) => opt.label), required: true },
     ],
     [

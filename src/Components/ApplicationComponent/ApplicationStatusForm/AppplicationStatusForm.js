@@ -57,6 +57,105 @@ const ApplicationStatusForm = ({ onBack, initialData = {} }) => {
     "Payment Information",
   ];
 
+  // Field mapping from current names to Swagger API response names
+  const fieldMapping = {
+    // Basic student information
+    'studentName': 'studentName',
+    'surname': 'surname', 
+    'htNo': 'htNo',
+    'aadhaar': 'aadharCardNo',
+    'applicationNo': 'studAdmsNo',
+    'dob': 'dob',
+    'gender': 'genderId',
+    'appType': 'appTypeId',
+    'studentType': 'studentTypeId',
+    'admissionReferredBy': 'admissionReferredBy',
+    'scoreAppNo': 'scoreAppNo',
+    'marks': 'marks',
+    'orientationDate': 'orientationDate',
+    'appSaleDate': 'appSaleDate',
+    'orientationFee': 'orientationFee',
+    'joinedCampus': 'campusId',
+    'course': 'orientationId',
+    'courseBatch': 'orientationBatchId',
+    'courseDates': 'orientationDate',
+    'fee': 'orientationFee',
+    'schoolType': 'preschoolTypeId',
+    'schoolName': 'schoolName',
+    'schoolState': 'preSchoolStateId',
+    'schoolDistrict': 'preSchoolDistrictId',
+    'schoolTypeId': 'schoolTypeId',
+    'preschoolTypeId': 'preschoolTypeId',
+    'religion': 'religionId',
+    'caste': 'casteId',
+    'bloodGroup': 'bloodGroupId',
+    'section': 'sectionId',
+    'quota': 'quotaId',
+    'status': 'statusId',
+    'classId': 'classId',
+    'proId': 'proId',
+    'createdBy': 'createdBy',
+    'dateOfJoin': 'dateOfJoin',
+    
+    // Parent information
+    'fatherName': 'parents[0].name',
+    'fatherOccupation': 'parents[0].occupation',
+    'fatherPhoneNumber': 'parents[0].mobileNo',
+    'fatherEmail': 'parents[0].email',
+    'motherName': 'parents[1].name',
+    'motherOccupation': 'parents[1].occupation',
+    'motherPhoneNumber': 'parents[1].mobileNo',
+    'motherEmail': 'parents[1].email',
+    'relationType': 'parents[0].relationTypeId', // Father relation type
+    
+    // Address information
+    'doorNo': 'addressDetails.doorNo',
+    'street': 'addressDetails.street',
+    'landmark': 'addressDetails.landmark',
+    'area': 'addressDetails.area',
+    'addressCity': 'addressDetails.cityId',
+    'mandal': 'addressDetails.mandalId',
+    'district': 'addressDetails.districtId',
+    'pincode': 'addressDetails.pincode',
+    'state': 'addressDetails.stateId',
+    
+    // Sibling information
+    'siblingInformation': 'siblings',
+    'fullName': 'siblings[].fullName',
+    'schoolName': 'siblings[].schoolName',
+    'classId': 'siblings[].classId',
+    'relationTypeId': 'siblings[].relationTypeId',
+    'genderId': 'siblings[].genderId',
+    
+    // Payment information
+    'appFeeAmount': 'paymentDetails.applicationFeeAmount',
+    'appFeeReceiptNo': 'paymentDetails.prePrintedReceiptNo',
+    'appFeePayDate': 'paymentDetails.applicationFeeDate',
+    'concessionAmount': 'paymentDetails.concessionAmount',
+    'payMode': 'paymentDetails.paymentModeId',
+    'chequeDdNo': 'paymentDetails.chequeDdNo',
+    'ifscCode': 'paymentDetails.ifscCode',
+    'chequeDdDate': 'paymentDetails.chequeDdDate',
+    'organizationId': 'paymentDetails.organizationId',
+    'orgBankId': 'paymentDetails.orgBankId',
+    'orgBankBranchId': 'paymentDetails.orgBankBranchId',
+    
+    // Concession information
+    'concessionIssuedBy': 'studentConcessionDetails.concessionIssuedBy',
+    'concessionAuthorisedBy': 'studentConcessionDetails.concessionAuthorisedBy',
+    'description': 'studentConcessionDetails.description',
+    'concessionReasonId': 'studentConcessionDetails.concessionReasonId',
+    'yearConcession1st': 'studentConcessionDetails.concessions[0].amount',
+    'yearConcession2nd': 'studentConcessionDetails.concessions[1].amount',
+    'yearConcession3rd': 'studentConcessionDetails.concessions[2].amount',
+    'concessions': 'studentConcessionDetails.concessions',
+    
+    // PRO concession
+    'proConcessionAmount': 'proConcessionDetails.concessionAmount',
+    'proReason': 'proConcessionDetails.reason',
+    'proEmployeeId': 'proConcessionDetails.proEmployeeId'
+  };
+
   const defaultInitialValues = {
     siblingInformation: [],
     status: "",
@@ -173,6 +272,253 @@ const ApplicationStatusForm = ({ onBack, initialData = {} }) => {
     proId: 4095,
     statusId: 2,
     createdBy: 2,
+  };
+
+  // Function to transform form data to Swagger API response structure
+  const transformFormDataToApiFormat = (formData) => {
+    // Helper function to safely parse integers with fallback
+    const safeParseInt = (value, fallback = 0) => {
+      if (!value || value === "" || value === null || value === undefined) return fallback;
+      const parsed = parseInt(value);
+      return isNaN(parsed) ? fallback : parsed;
+    };
+
+    // Helper function to safely parse floats with fallback
+    const safeParseFloat = (value, fallback = 0) => {
+      if (!value || value === "" || value === null || value === undefined) return fallback;
+      const parsed = parseFloat(value);
+      return isNaN(parsed) ? fallback : parsed;
+    };
+
+    const apiData = {
+      studAdmsNo: formData.applicationNo || formData.htNo || "",
+      studentName: formData.studentName || formData.firstName || "",
+      surname: formData.surname || "",
+      htNo: formData.htNo || "",
+      apaarNo: formData.aapar || "",
+      dateOfJoin: formData.dateOfJoin || new Date().toISOString().split('T')[0],
+      createdBy: formData.createdBy || 2,
+      aadharCardNo: safeParseInt(formData.aadhaar),
+      dob: formData.dob || "",
+      religionId: safeParseInt(formData.religion) || 1,
+      casteId: safeParseInt(formData.caste) || 1,
+      schoolTypeId: safeParseInt(formData.schoolTypeId) || 1,
+      schoolName: formData.schoolName || "",
+      preSchoolStateId: safeParseInt(formData.schoolState) || 1,
+      preSchoolDistrictId: safeParseInt(formData.schoolDistrict) || 1,
+      preschoolTypeId: safeParseInt(formData.schoolType) || safeParseInt(formData.preschoolTypeId) || safeParseInt(formData.preschoolType) || 1,
+      admissionReferredBy: formData.admissionReferredBy || "",
+      scoreAppNo: formData.scoreAppNo || "",
+      marks: safeParseInt(formData.marks),
+      orientationDate: formData.orientationDates || formData.courseDates || "",
+      appSaleDate: formData.appSaleDate || new Date().toISOString(),
+      orientationFee: safeParseFloat(formData.OrientationFee) || safeParseFloat(formData.orientationFee) || safeParseFloat(formData.fee),
+      genderId: safeParseInt(formData.gender) || 1,
+      appTypeId: safeParseInt(formData.admissionType) || safeParseInt(formData.appType) || 1,
+      studentTypeId: safeParseInt(formData.studentType) || 1,
+      studyTypeId: safeParseInt(formData.batchType) || safeParseInt(formData.studyType) || 1,
+      orientationId: safeParseInt(formData.orientationName) || safeParseInt(formData.course) || 1,
+      sectionId: safeParseInt(formData.section) || 1,
+      quotaId: safeParseInt(formData.quota) || 1,
+      statusId: safeParseInt(formData.status) || 2,
+      classId: safeParseInt(formData.joiningClassName) || safeParseInt(formData.classId) || 1,
+      campusId: safeParseInt(formData.joinedCampus) || 1,
+      proId: safeParseInt(formData.proId) || 4095,
+      orientationBatchId: safeParseInt(formData.orientationBatch) || safeParseInt(formData.courseBatch) || 1,
+      bloodGroupId: safeParseInt(formData.bloodGroup) || 1,
+      parents: [
+        {
+          name: formData.fatherName || "",
+          relationTypeId: 1, // Father relation type ID
+          occupation: formData.fatherOccupation || "",
+          mobileNo: safeParseInt(formData.fatherPhoneNumber),
+          email: formData.fatherEmail || ""
+        },
+        {
+          name: formData.motherName || "",
+          relationTypeId: 2, // Mother relation type ID
+          occupation: formData.motherOccupation || "",
+          mobileNo: safeParseInt(formData.motherPhoneNumber),
+          email: formData.motherEmail || ""
+        }
+      ],
+      addressDetails: {
+        doorNo: formData.doorNo || "",
+        street: formData.street || "",
+        landmark: formData.landmark || "",
+        area: formData.area || "",
+        cityId: safeParseInt(formData.addressCity) || safeParseInt(formData.city) || 1,
+        mandalId: safeParseInt(formData.mandal) || 1,
+        districtId: safeParseInt(formData.district) || 1,
+        pincode: safeParseInt(formData.pincode) || 500001,
+        stateId: safeParseInt(formData.state) || safeParseInt(formData.stateId) || 1,
+        createdBy: formData.createdBy || 2
+      },
+      siblings: formData.siblingInformation || [],
+      studentConcessionDetails: {
+        concessionIssuedBy: safeParseInt(formData.givenById) || safeParseInt(formData.concessionIssuedBy) || 1,
+        concessionAuthorisedBy: safeParseInt(formData.authorizedById) || safeParseInt(formData.concessionAuthorisedBy) || 1,
+        description: formData.reason || formData.description || "",
+        concessionReasonId: safeParseInt(formData.concessionReasonId) || 1,
+        created_by: formData.createdBy || 2,
+        concessions: [
+          ...(formData.yearConcession1st && safeParseFloat(formData.yearConcession1st) > 0 ? [{
+            concTypeId: 1, // Year 1 concession
+            amount: safeParseFloat(formData.yearConcession1st)
+          }] : []),
+          ...(formData.yearConcession2nd && safeParseFloat(formData.yearConcession2nd) > 0 ? [{
+            concTypeId: 2, // Year 2 concession
+            amount: safeParseFloat(formData.yearConcession2nd)
+          }] : []),
+          ...(formData.yearConcession3rd && safeParseFloat(formData.yearConcession3rd) > 0 ? [{
+            concTypeId: 3, // Year 3 concession
+            amount: safeParseFloat(formData.yearConcession3rd)
+          }] : [])
+        ]
+      },
+      proConcessionDetails: {
+        concessionAmount: safeParseFloat(formData.proConcessionAmount),
+        reason: formData.proReason || formData.reason || "",
+        proEmployeeId: safeParseInt(formData.proEmployeeId) || safeParseInt(formData.authorizedById) || 1,
+        created_by: formData.createdBy || 2
+      },
+      paymentDetails: {
+        applicationFeeAmount: safeParseFloat(formData.applicationFee) || safeParseFloat(formData.amount) || safeParseFloat(formData.appFeeAmount),
+        prePrintedReceiptNo: formData.receiptNumber || formData.appFeeReceiptNo || "",
+        applicationFeeDate: formData.paymentDate || formData.appFeePayDate || new Date().toISOString(),
+        concessionAmount: safeParseFloat(formData.yearConcession1st) + safeParseFloat(formData.yearConcession2nd) + safeParseFloat(formData.yearConcession3rd),
+        paymentModeId: safeParseInt(formData.payMode) || 1,
+        chequeDdNo: formData.mainDdNumber || formData.mainChequeNumber || "",
+        ifscCode: formData.mainDdIfscCode || formData.mainChequeIfscCode || "",
+        chequeDdDate: formData.paymentDate || formData.mainDdDate || formData.mainChequeDate || "",
+        cityId: safeParseInt(formData.mainDdCityName) || safeParseInt(formData.mainChequeCityName) || safeParseInt(formData.addressCity) || 1,
+        orgBankId: safeParseInt(formData.mainDdBankName) || safeParseInt(formData.mainChequeBankName) || 1,
+        orgBankBranchId: safeParseInt(formData.mainDdBranchName) || safeParseInt(formData.mainChequeBranchName) || 1,
+        organizationId: safeParseInt(formData.mainDdOrganisationName) || safeParseInt(formData.mainChequeOrganisationName) || 1,
+        created_by: formData.createdBy || 2
+      }
+    };
+
+    console.log("🔄 Transformed form data to API format:", apiData);
+    
+    // Display formatted object in console UI
+    console.log("📋 ===== API OBJECT STRUCTURE =====");
+    console.log(JSON.stringify(apiData, null, 2));
+    console.log("📋 ===== END API OBJECT =====");
+    
+    // Display detailed object structure
+    console.log("🔍 ===== DETAILED API OBJECT =====");
+    console.log("📝 Basic Information:");
+    console.log(`  studAdmsNo: "${apiData.studAdmsNo}"`);
+    console.log(`  studentName: "${apiData.studentName}"`);
+    console.log(`  surname: "${apiData.surname}"`);
+    console.log(`  htNo: "${apiData.htNo}"`);
+    console.log(`  apaarNo: "${apiData.apaarNo}"`);
+    console.log(`  dateOfJoin: "${apiData.dateOfJoin}"`);
+    console.log(`  createdBy: ${apiData.createdBy}`);
+    console.log(`  aadharCardNo: ${apiData.aadharCardNo}`);
+    console.log(`  dob: "${apiData.dob}"`);
+    
+    console.log("📝 Academic Information:");
+    console.log(`  religionId: ${apiData.religionId}`);
+    console.log(`  casteId: ${apiData.casteId}`);
+    console.log(`  schoolTypeId: ${apiData.schoolTypeId}`);
+    console.log(`  schoolName: "${apiData.schoolName}"`);
+    console.log(`  preSchoolStateId: ${apiData.preSchoolStateId}`);
+    console.log(`  preSchoolDistrictId: ${apiData.preSchoolDistrictId}`);
+    console.log(`  preschoolTypeId: ${apiData.preschoolTypeId} (from schoolType dropdown)`);
+    console.log(`  admissionReferredBy: "${apiData.admissionReferredBy}"`);
+    console.log(`  scoreAppNo: "${apiData.scoreAppNo}"`);
+    console.log(`  marks: ${apiData.marks}`);
+    
+    console.log("📝 Orientation Information:");
+    console.log(`  orientationDate: "${apiData.orientationDate}"`);
+    console.log(`  appSaleDate: "${apiData.appSaleDate}"`);
+    console.log(`  orientationFee: ${apiData.orientationFee}`);
+    console.log(`  genderId: ${apiData.genderId}`);
+    console.log(`  appTypeId: ${apiData.appTypeId}`);
+    console.log(`  studentTypeId: ${apiData.studentTypeId}`);
+    console.log(`  studyTypeId: ${apiData.studyTypeId}`);
+    console.log(`  orientationId: ${apiData.orientationId}`);
+    console.log(`  sectionId: ${apiData.sectionId}`);
+    console.log(`  quotaId: ${apiData.quotaId}`);
+    console.log(`  statusId: ${apiData.statusId}`);
+    console.log(`  classId: ${apiData.classId}`);
+    console.log(`  campusId: ${apiData.campusId}`);
+    console.log(`  proId: ${apiData.proId}`);
+    console.log(`  orientationBatchId: ${apiData.orientationBatchId}`);
+    console.log(`  bloodGroupId: ${apiData.bloodGroupId}`);
+    
+    console.log("👨‍👩‍👧‍👦 Parents Information:");
+    apiData.parents.forEach((parent, index) => {
+      console.log(`  Parent ${index + 1}:`);
+      console.log(`    name: "${parent.name}"`);
+      console.log(`    relationTypeId: ${parent.relationTypeId}`);
+      console.log(`    occupation: "${parent.occupation}"`);
+      console.log(`    mobileNo: ${parent.mobileNo}`);
+      console.log(`    email: "${parent.email}"`);
+    });
+    
+    console.log("🏠 Address Details:");
+    console.log(`  doorNo: "${apiData.addressDetails.doorNo}"`);
+    console.log(`  street: "${apiData.addressDetails.street}"`);
+    console.log(`  landmark: "${apiData.addressDetails.landmark}"`);
+    console.log(`  area: "${apiData.addressDetails.area}"`);
+    console.log(`  cityId: ${apiData.addressDetails.cityId}`);
+    console.log(`  mandalId: ${apiData.addressDetails.mandalId}`);
+    console.log(`  districtId: ${apiData.addressDetails.districtId}`);
+    console.log(`  pincode: ${apiData.addressDetails.pincode}`);
+    console.log(`  stateId: ${apiData.addressDetails.stateId}`);
+    console.log(`  createdBy: ${apiData.addressDetails.createdBy}`);
+    
+    console.log("👶 Siblings Information:");
+    apiData.siblings.forEach((sibling, index) => {
+      console.log(`  Sibling ${index + 1}:`);
+      console.log(`    fullName: "${sibling.fullName}"`);
+      console.log(`    schoolName: "${sibling.schoolName}"`);
+      console.log(`    classId: ${sibling.classId}`);
+      console.log(`    relationTypeId: ${sibling.relationTypeId}`);
+      console.log(`    genderId: ${sibling.genderId}`);
+      console.log(`    createdBy: ${sibling.createdBy}`);
+    });
+    
+    console.log("💰 Student Concession Details:");
+    console.log(`  concessionIssuedBy: ${apiData.studentConcessionDetails.concessionIssuedBy}`);
+    console.log(`  concessionAuthorisedBy: ${apiData.studentConcessionDetails.concessionAuthorisedBy}`);
+    console.log(`  description: "${apiData.studentConcessionDetails.description}"`);
+    console.log(`  concessionReasonId: ${apiData.studentConcessionDetails.concessionReasonId}`);
+    console.log(`  created_by: ${apiData.studentConcessionDetails.created_by}`);
+    console.log("  concessions:");
+    apiData.studentConcessionDetails.concessions.forEach((concession, index) => {
+      console.log(`    Concession ${index + 1}:`);
+      console.log(`      concTypeId: ${concession.concTypeId}`);
+      console.log(`      amount: ${concession.amount}`);
+    });
+    
+    console.log("💼 PRO Concession Details:");
+    console.log(`  concessionAmount: ${apiData.proConcessionDetails.concessionAmount}`);
+    console.log(`  reason: "${apiData.proConcessionDetails.reason}"`);
+    console.log(`  proEmployeeId: ${apiData.proConcessionDetails.proEmployeeId}`);
+    console.log(`  created_by: ${apiData.proConcessionDetails.created_by}`);
+    
+    console.log("💳 Payment Details:");
+    console.log(`  applicationFeeAmount: ${apiData.paymentDetails.applicationFeeAmount}`);
+    console.log(`  prePrintedReceiptNo: "${apiData.paymentDetails.prePrintedReceiptNo}"`);
+    console.log(`  applicationFeeDate: "${apiData.paymentDetails.applicationFeeDate}"`);
+    console.log(`  concessionAmount: ${apiData.paymentDetails.concessionAmount}`);
+    console.log(`  paymentModeId: ${apiData.paymentDetails.paymentModeId}`);
+    console.log(`  chequeDdNo: "${apiData.paymentDetails.chequeDdNo}"`);
+    console.log(`  ifscCode: "${apiData.paymentDetails.ifscCode}"`);
+    console.log(`  chequeDdDate: "${apiData.paymentDetails.chequeDdDate}"`);
+    console.log(`  cityId: ${apiData.paymentDetails.cityId}`);
+    console.log(`  orgBankId: ${apiData.paymentDetails.orgBankId}`);
+    console.log(`  orgBankBranchId: ${apiData.paymentDetails.orgBankBranchId}`);
+    console.log(`  organizationId: ${apiData.paymentDetails.organizationId}`);
+    console.log(`  created_by: ${apiData.paymentDetails.created_by}`);
+    
+    console.log("🔍 ===== END DETAILED API OBJECT =====");
+    
+    return apiData;
   };
 
   const initialValues = useMemo(
@@ -340,129 +686,10 @@ const ApplicationStatusForm = ({ onBack, initialData = {} }) => {
       setIsSubmitting(true);
       console.log("All form values before submission:", values);
 
-      const formData = {
-        studAdmsNo: values.applicationNo,
-        studentName: values.firstName,
-        surname: values.surname,
-        htNo: values.htNo,
-        apaarNo: values.aapar || "",
-        dateOfJoin: values.orientationDates || values.courseDates,
-        createdBy: 2,
-        aadharCardNo: values.aadhar ? Number(values.aadhar) : 0,
-        dob: values.dob,
-        religionId: values.religion ? Number(values.religion) : 0,
-        casteId: values.caste ? Number(values.caste) : 0,
-        schoolTypeId: values.schoolType ? Number(values.schoolType) : 0,
-        schoolName: values.schoolName || "",
-        preSchoolStateId: values.schoolState ? Number(values.schoolState) : 0,
-        preSchoolDistrictId: values.schoolDistrict ? Number(values.schoolDistrict) : 0,
-        schoolTypeId: values.schoolType ? Number(values.schoolType) : 0,
-        admissionReferredBy: values.admissionReferredBy || "",
-        scoreAppNo: values.scoreAppNo || "",
-        marks: values.marks ? Number(values.marks) : 0,
-        orientationDate: values.orientationDates || values.courseDates,
-        appSaleDate: values.orientationDates || values.courseDates,
-        orientationFee: Number(values.OrientationFee) || 0,
-        genderId: values.gender ? Number(values.gender) : 0,
-        appTypeId: values.admissionType ? Number(values.admissionType) : 0,
-        studentTypeId: values.studentType ? Number(values.studentType) : 0,
-        studyTypeId: 1,
-        orientationId: values.orientationName ? Number(values.orientationName) : 0,
-        sectionId: 0, // Default value as per Swagger
-        quotaId: values.quota ? Number(values.quota) : 0,
-        statusId: 2,
-        classId: values.joiningClassName ? Number(values.joiningClassName) : 0,
-        campusId: values.joinedCampus ? Number(values.joinedCampus) : 0,
-        proId: values.proId ? Number(values.proId) : 4095,
-        orientationBatchId: values.orientationBatch ? Number(values.orientationBatch) : 0,
-        bloodGroupId: values.bloodGroup ? Number(values.bloodGroup) : 0,
-        parents: [
-          {
-            name: values.fatherName || "",
-            relationTypeId: 1, // Father information
-            occupation: values.fatherOccupation || "",
-            mobileNo: values.fatherPhoneNumber ? Number(values.fatherPhoneNumber) : 0,
-            email: values.fatherEmail || ""
-          },
-          {
-            name: values.motherName || "",
-            relationTypeId: 2, // Mother information
-            occupation: values.motherOccupation || "",
-            mobileNo: values.motherPhoneNumber ? Number(values.motherPhoneNumber) : 0,
-            email: values.motherEmail || ""
-          }
-        ],
-        addressDetails: {
-          doorNo: values.doorNo || "",
-          street: values.street || "",
-          landmark: values.landmark || "",
-          area: values.area || "",
-          cityId: (() => {
-            const addressCityId = values.addressCity && /^\d+$/.test(String(values.addressCity)) ? Number(values.addressCity) : 0;
-            const generalCityId = values.city && /^\d+$/.test(String(values.city)) ? Number(values.city) : 0;
-            return addressCityId || generalCityId || 0;
-          })(),
-          mandalId: values.mandal ? Number(values.mandal) : 0,
-          districtId: values.district ? Number(values.district) : 0,
-          pincode: values.pincode ? Number(values.pincode) : 0,
-          stateId: values.stateId && /^\d+$/.test(String(values.stateId)) ? Number(values.stateId) : 0,
-          createdBy: 0,
-        },
-        studentConcessionDetails: values.yearConcession1st || values.yearConcession2nd || values.yearConcession3rd ? {
-          concessionIssuedBy: Number(values.givenById) || 0,
-          concessionAuthorisedBy: Number(values.authorizedById) || 0,
-          description: values.reason || "",
-          concessionReasonId: Number(values.concessionReasonId) || 0,
-          created_by: 2,
-          concessions: [
-            ...(values.yearConcession1st && Number(values.yearConcession1st) > 0 ? [{
-              concTypeId: 1, // First year
-              amount: Number(values.yearConcession1st)
-            }] : []),
-            ...(values.yearConcession2nd && Number(values.yearConcession2nd) > 0 ? [{
-              concTypeId: 2, // Second year
-              amount: Number(values.yearConcession2nd)
-            }] : []),
-            ...(values.yearConcession3rd && Number(values.yearConcession3rd) > 0 ? [{
-              concTypeId: 3, // Third year
-              amount: Number(values.yearConcession3rd)
-            }] : [])
-          ]
-        } : null,
-        proConcessionDetails: values.yearConcession1st || values.yearConcession2nd || values.yearConcession3rd ? {
-          concessionAmount: Number(values.yearConcession1st || 0) + Number(values.yearConcession2nd || 0) + Number(values.yearConcession3rd || 0),
-          reason: values.reason || "",
-          proEmployeeId: Number(values.authorizedById) || 0,
-          created_by: 2
-        } : null,
-        paymentDetails: {
-          applicationFeeAmount: Number(values.applicationFee) || Number(values.amount) || 0,
-          prePrintedReceiptNo: values.receiptNumber || "",
-          applicationFeeDate: values.paymentDate || new Date().toISOString(),
-          concessionAmount: Number(values.yearConcession1st || 0) + Number(values.yearConcession2nd || 0) + Number(values.yearConcession3rd || 0),
-          paymentModeId: values.payMode === "Cash" ? 1 : values.payMode === "DD" ? 2 : values.payMode === "Cheque" ? 3 : 4,
-          chequeDdNo: values.payMode === "DD" ? values.mainDdNumber : values.payMode === "Cheque" ? values.mainChequeNumber : "",
-          ifscCode: values.payMode === "DD" ? values.mainDdIfscCode : values.payMode === "Cheque" ? values.mainChequeIfscCode : "",
-          chequeDdDate: values.paymentDate || new Date().toISOString(),
-          cityId: values.payMode === "DD" ? Number(values.mainDdCityName) || 0 : values.payMode === "Cheque" ? Number(values.mainChequeCityName) || 0 : 0,
-          orgBankId: values.payMode === "DD" ? Number(values.mainDdBankName) || 0 : values.payMode === "Cheque" ? Number(values.mainChequeBankName) || 0 : 0,
-          orgBankBranchId: values.payMode === "DD" ? Number(values.mainDdBranchName) || 0 : values.payMode === "Cheque" ? Number(values.mainChequeBranchName) || 0 : 0,
-          organizationId: values.payMode === "DD" ? Number(values.mainDdOrganisationName) || 0 : values.payMode === "Cheque" ? Number(values.mainChequeOrganisationName) || 0 : 0,
-          created_by: 0,
-        },
-        siblings: values.siblingInformation.map((sibling) => ({
-          fullName: sibling.fullName || "",
-          schoolName: sibling.schoolName || "",
-          classId: sibling.class ? Number(sibling.class) : 0,
-          relationTypeId: sibling.relationType ? Number(sibling.relationType) : 0,
-          genderId: sibling.gender ? Number(sibling.gender) : 0,
-          createdBy: 0,
-        })),
-      };
+      // Transform form data to match Swagger API response structure
+      const formData = transformFormDataToApiFormat(values);
 
       console.log("Submitting form data:", formData);
-      console.log("School Type value:", values.schoolType);
-      console.log("School Type ID:", formData.schoolTypeId);
       await apiService.submitAdmissionForm(formData);
       setSaleData(formData);
       setSuccessStatusType("sale");
