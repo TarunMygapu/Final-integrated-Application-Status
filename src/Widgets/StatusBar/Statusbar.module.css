@@ -45,6 +45,11 @@
   color: #FF2525;
 }
 
+.label_damaged {
+  font-size: 14px;
+  color: #FF2525;
+}
+
 .sold {
   color: #3425FF;
 }

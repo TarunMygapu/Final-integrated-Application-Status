@@ -274,7 +274,15 @@ const ApplicationStatus = () => {
     });
     
     if (applicationNo) {
-      const route = displayStatus === "Damaged" ? "damaged" : "sale";
+      // New navigation logic: If status is "Sold" (blue) -> confirmation, otherwise -> sale
+      let route;
+      if (displayStatus === "Damaged") {
+        route = "damaged";
+      } else if (displayStatus === "Sold") {
+        route = "confirmation";
+      } else {
+        route = "sale";
+      }
       const initialValues = {
         applicationNo: item.applicationNo || "",
         zoneName: item.zonal_name || item.zone || item.zoneName || "",

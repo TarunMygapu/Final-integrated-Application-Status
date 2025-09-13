@@ -5,10 +5,10 @@ import Statusbar from "../../../Widgets/StatusBar/Statusbar";
  
 const SearchCards = ({ data, maxResults = 5, onCardClick }) => {
   const displayData = (data || []).filter(
-    (item) => item.displayStatus && item.displayStatus !== "Damaged"
+    (item) => item.displayStatus
   );
   const filteredData = displayData.slice(0, maxResults);
-  // Filter out "Damaged" status and limit to maxResults
+  // Include all statuses including "Damaged" and limit to maxResults
   console.log("SearchCards Data:", filteredData); // Debugging
   return (
     <div className={styles.Search_Cards_recent_search}>
@@ -38,6 +38,7 @@ const SearchCards = ({ data, maxResults = 5, onCardClick }) => {
                 <Statusbar
                   isSold={item.displayStatus === "Sold" || item.displayStatus === "Confirmed"}
                   isConfirmed={item.displayStatus === "Confirmed"}
+                  isDamaged={item.displayStatus === "Damaged"}
                 />
               </div>
             </div>

@@ -1,9 +1,31 @@
 import React from "react";
 import styles from "./Statusbar.module.css";
 
-const Statusbar = ({ isSold, isConfirmed, showLabels = true, reducedGap = false, labelWidth = "100%" }) => {
+const Statusbar = ({ isSold, isConfirmed, isDamaged, showLabels = true, reducedGap = false, labelWidth = "100%" }) => {
   const blue = "#3425FF";
   const red = "#FF2525";
+
+  // If damaged, show special damaged status bar
+  if (isDamaged) {
+    return (
+      <div className={styles.status_container}>
+        <div className={styles.status_bar}>
+          <div className={styles.status_icon}>
+            <Star color={red}><Cross /></Star>
+          </div>
+        </div>
+        {showLabels && (
+          <div className={styles.status_labels} style={{ width: labelWidth }}>
+            <div className={styles.label_container}>
+              <span className={styles.label_damaged}>
+                Damaged
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   // If confirmed => sold is automatically true
   const finalSold = isConfirmed ? true : isSold;
